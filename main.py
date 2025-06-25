@@ -1,24 +1,26 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 import yt_dlp
 import os
 
 app = Flask(__name__)
 
-@app.route("/audio", methods=["GET"])
-def get_audio():
+@app.route("/stream", methods=["GET"])
+def stream():
     video_id = request.args.get("id")
+    if not video_id:
+        return jsonify({"error": "Missing video ID"}), 400
+
     url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'noplaylist': True,
+    }
 
     try:
-        ydl_opts = {
-            "format": "bestaudio/best",
-            "quiet": True,
-            "noplaylist": True,
-            "force_https": True,
-        }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            return jsonify({"url": info["url"]})
+            return redirect(info['url'], code=302)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
