@@ -14,6 +14,7 @@ def get_audio():
             "format": "bestaudio/best",
             "quiet": True,
             "noplaylist": True,
+            "force_https": True,
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -28,4 +29,3 @@ def home():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     app.run(host="0.0.0.0", port=port)
-
