@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, Response
 import yt_dlp
+import requests
 import os
 
 app = Flask(__name__)
@@ -15,14 +16,26 @@ def stream():
         'format': 'bestaudio[ext=webm]/bestaudio/best',
         'quiet': True,
         'noplaylist': True,
-        'force_generic_extractor': True,
     }
-
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            return redirect(info['url'], code=302)
+            stream_url = info['url']
+
+        def generate():
+            with requests.get(stream_url, stream=True, headers={
+                "User-Agent": "Mozilla/5.0",
+                "Referer": "https://www.youtube.com"
+            }) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=4096):
+                    if chunk:
+                        yield chunk
+
+        # Serve the stream with appropriate content type
+        return Response(generate(), content_type='audio/webm')
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
