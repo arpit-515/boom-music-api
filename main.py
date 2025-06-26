@@ -12,10 +12,12 @@ def stream():
 
     url = f"https://www.youtube.com/watch?v={video_id}"
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio[ext=webm]/bestaudio/best',
         'quiet': True,
         'noplaylist': True,
+        'force_generic_extractor': True,
     }
+
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
